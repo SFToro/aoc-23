@@ -1,5 +1,6 @@
+#![allow(unused)] // FIXME
 fn main() {
-    let input: &str = include_str!("../../part-one.txt");
+    let input: &str = include_str!("../../input.txt");
     println!("{}", process(input));
 }
 
