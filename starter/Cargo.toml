@@ -1,5 +1,5 @@
 [package]
-name = "advent-01"
+name = "day-"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,6 @@ edition = "2021"
 
 
 [dependencies]
+
+[lints]
+workspace = true

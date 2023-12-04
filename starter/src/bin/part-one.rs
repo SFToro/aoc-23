@@ -1,4 +1,3 @@
-#![allow(unused)] // FIXME
 fn main() {
     let input: &str = include_str!("../../input.txt");
     println!("{}", process(input));
@@ -16,6 +15,6 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        assert_eq!(process(INPUT_TEXT), 142);
+        assert_eq!(process(INPUT_TEXT),);
     }
 }
