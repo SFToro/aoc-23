@@ -1,5 +1,8 @@
 fn main() {
     let input: &str = include_str!("../../input.txt");
+    if input.is_empty() {
+        panic!("Input is empty");
+    }
 
     println!("{}", process(input));
 }
@@ -17,6 +20,6 @@ mod tests {
     #[test]
     #[ignore]
     fn test_part_two() {
-        assert_eq!(process(INPUT_TEXT),);
+        assert_eq!(process(INPUT_TEXT), 0);
     }
 }
