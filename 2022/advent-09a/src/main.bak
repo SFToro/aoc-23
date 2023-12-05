@@ -1,0 +1,80 @@
+use std::{ops::Sub, str::FromStr};
+
+enum Dir {
+    Up,
+    Down,
+    Right,
+    Left,
+}
+impl TryFrom<&str> for Dir {
+    type Error = color_eyre::Report;
+    fn try_from(c: &str) -> Result<Self, Self::Error> {
+        match c {
+            "U" => Ok(Dir::Up),
+            "D" => Ok(Dir::Down),
+            "R" => Ok(Dir::Right),
+            "L" => Ok(Dir::Left),
+            _ => Err(color_eyre::eyre::eyre!("Not a valid direction: {c:?}")),
+        }
+    }
+}
+
+struct Movement {
+    dir: Dir,
+    amount: isize,
+}
+impl FromStr for Movement {
+    type Err = color_eyre::Report;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let  Some((direction,amount)) = s.split_once(" ") else {
+            return Err(color_eyre::eyre::eyre!("Expected <direction>SP<amount>EOF, got {s:?}"));
+    };
+        Ok(Self {
+            dir: direction.try_into()?,
+            amount: amount.parse::<isize>().unwrap_or(0) as isize,
+        })
+    }
+}
+#[derive(Default, Debug)]
+struct Pos {
+    x: isize,
+    y: isize,
+}
+impl Pos {
+    fn move_movement(&mut self, movement: Movement) {
+        match movement.dir {
+            Dir::Up => self.y += movement.amount,
+            Dir::Down => self.y -= movement.amount,
+            Dir::Left => self.x -= movement.amount,
+            Dir::Right => self.x += movement.amount,
+        }
+    }
+    fn move_dif(&mut self, (x, y): (isize, isize)) {
+        if x == 0 && y == 0 {
+            return;
+        } else if y == 0 {
+            self.x += x - 1;
+        } else if x == 0 {
+            self.y += y;
+        } else {
+            self.x += x - 1;
+            self.y += y - 1;
+        }
+    }
+    fn sub(minu: &Pos, rhs: &Pos) -> (isize, isize) {
+        (minu.x - rhs.x, minu.y - rhs.y)
+    }
+}
+
+fn main() {
+    let contents = include_str!("../input-test.txt");
+    let mut head_pos = Pos::default();
+    let mut tail_pos = Pos::default();
+    contents.lines().for_each(|l| {
+        let movement = l.parse::<Movement>().unwrap();
+        head_pos.move_movement(movement);
+        tail_pos.move_dif(Pos::sub(&head_pos, &tail_pos));
+    });
+    let dif = Pos::sub(&head_pos, &tail_pos);
+    dbg!(dif);
+}
