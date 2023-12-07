@@ -25,7 +25,7 @@ fn process(input: &str) -> usize {
     };
     for (i, line) in lines.enumerate() {
         for (j, c) in line.chars().enumerate() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 if last.starting_index == -1 {
                     last.starting_index = j as i32;
                 }
@@ -75,7 +75,7 @@ fn process(input: &str) -> usize {
                 let (x, y) = (adj.0 as usize, adj.1 as usize);
                 if grid.contains_key(&(x, y)) {
                     let adjascent = grid.get(&(x, y)).unwrap();
-                    if !adjascent.parse::<usize>().is_ok() {
+                    if adjascent.parse::<usize>().is_err() {
                         required.insert(k);
                         continue 'outer;
                     }

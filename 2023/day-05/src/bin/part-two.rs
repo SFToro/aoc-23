@@ -23,7 +23,8 @@ fn process(input: &str) -> u64 {
     starting_seeds
         .into_par_iter()
         .map(|(seed_initial, range)| -> u64 {
-            let min = (seed_initial..(seed_initial + range))
+            
+            (seed_initial..(seed_initial + range))
                 .into_par_iter()
                 .map(|seed| {
                     let mut i = seed;
@@ -33,8 +34,7 @@ fn process(input: &str) -> u64 {
                     i
                 })
                 .min()
-                .unwrap();
-            min
+                .unwrap()
         })
         .min()
         .unwrap()

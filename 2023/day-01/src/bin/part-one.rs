@@ -9,12 +9,12 @@ fn process(input: &str) -> u32 {
         .map(|line| {
             let mut only_nums = line.chars().filter(|c| c.is_numeric());
 
-            let first_digit = only_nums.nth(0).unwrap().to_digit(10).unwrap();
+            let first_digit = only_nums.next().unwrap().to_digit(10).unwrap();
 
             if let Some(second_digit) = only_nums.last() {
-                return first_digit * 10 + second_digit.to_digit(10).unwrap();
+                first_digit * 10 + second_digit.to_digit(10).unwrap()
             } else {
-                return first_digit * 10 + first_digit;
+                first_digit * 10 + first_digit
             }
         })
         .sum();

@@ -17,10 +17,10 @@ fn main() {
 fn process(input: &str) -> usize {
     let (_, pair) = parse_input(input).unwrap();
     let mut range_start = pair.time as f64 - ((pair.time.pow(2) - 4 * pair.distance) as f64).sqrt();
-    range_start = range_start / 2.0;
+    range_start /= 2.0;
 
     let mut range_end = pair.time as f64 + ((pair.time.pow(2) - 4 * pair.distance) as f64).sqrt();
-    range_end = range_end / 2.0;
+    range_end /= 2.0;
 
     // Case they are not fractional
     if range_start.fract() < 1e-10 {
@@ -30,8 +30,8 @@ fn process(input: &str) -> usize {
         range_end = range_end.floor() - 1.0;
     }
 
-    let count = (range_start.ceil() as usize..=(range_end.floor() as usize)).count();
-    count
+    
+    (range_start.ceil() as usize..=(range_end.floor() as usize)).count()
 }
 struct Pair {
     time: u64,

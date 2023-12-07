@@ -25,7 +25,7 @@ fn process(input: &str) -> usize {
     };
     for (i, line) in lines.enumerate() {
         for (j, c) in line.chars().enumerate() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 if last.starting_index == -1 {
                     last.starting_index = j as i32;
                 }
@@ -53,11 +53,7 @@ fn process(input: &str) -> usize {
     }
 
     grid.retain(|_k, v| {
-        if v.parse::<usize>().is_ok() || *v == "*".to_string() {
-            true
-        } else {
-            false
-        }
+        v.parse::<usize>().is_ok() || *v == "*".to_string()
     });
 
     let mut results = vec![];
@@ -103,7 +99,7 @@ fn process(input: &str) -> usize {
                 }
             }
             if items.len() == 2 {
-                results.push(items.iter().fold(1, |acc, x| acc * x));
+                results.push(items.iter().product::<usize>());
             }
         }
     }

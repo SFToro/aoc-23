@@ -27,12 +27,12 @@ fn process(input: &str) -> usize {
             let good_numbers = game
                 .my_numbers
                 .iter()
-                .filter(|my_number| game.winners.contains(&my_number))
+                .filter(|my_number| game.winners.contains(my_number))
                 .collect::<Vec<_>>();
 
             if good_numbers.len() > 1 {
                 good_numbers.iter().skip(1).fold(1, |acc, _| acc * 2)
-            } else if good_numbers.len() == 0 {
+            } else if good_numbers.is_empty() {
                 0
             } else {
                 1

@@ -127,7 +127,7 @@ impl Ord for Round<'_> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if (self.hand as u8) == (other.hand as u8) {
             return {
-                *&self
+                self
                     .cards
                     .chars()
                     .zip(other.cards.chars())
@@ -137,7 +137,7 @@ impl Ord for Round<'_> {
                         let (_, other_card_power) =
                             CARDS.iter().find(|(ch, _power)| *ch == other_card).unwrap();
                         if card_power != other_card_power {
-                            Some(card_power.cmp(&other_card_power))
+                            Some(card_power.cmp(other_card_power))
                         } else {
                             None
                         }

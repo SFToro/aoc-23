@@ -53,7 +53,7 @@ fn process(input: &str) -> usize {
 
     for (_key, value) in &btree_map {
         for id in &value.ids {
-            let amount_to_update = btree_map.get(&id).unwrap();
+            let amount_to_update = btree_map.get(id).unwrap();
 
             amount_to_update
                 .amount
@@ -61,7 +61,7 @@ fn process(input: &str) -> usize {
         }
     }
 
-    btree_map.iter().map(|(_k, v)| v.amount.get()).sum()
+    btree_map.values().map(|v| v.amount.get()).sum()
 }
 
 fn parse_numbers(input: &str) -> nom::IResult<&str, Vec<usize>> {
