@@ -18,7 +18,6 @@ fn main() {
 fn process(input: &str) -> u64 {
     let (_, mut rounds) = parse_input(input).unwrap();
     rounds.sort();
-
     rounds
         .iter()
         .enumerate()
@@ -37,125 +36,38 @@ const CARDS: [(char, u64); 13] = [
     ('8', 8),
     ('9', 9),
     ('T', 10),
-    ('Q', 11),
-    ('K', 12),
-    ('A', 13),
+    ('Q', 12),
+    ('K', 13),
+    ('A', 14),
 ];
-
-#[derive(Debug)]
-enum Hand<'a> {
-    HighCard(&'a str),
-    OnePair(&'a str),
-    TwoPair(&'a str),
-    ThreeOfAKind(&'a str),
-    FullHouse(&'a str),
-    FourOfAKind(&'a str),
-    FiveOfAKind(&'a str),
+#[derive(Clone, Copy)]
+enum Hand {
+    HighCard = 1,
+    OnePair = 2,
+    TwoPair = 3,
+    ThreeOfAKind = 4,
+    FullHouse = 5,
+    FourOfAKind = 6,
+    FiveOfAKind = 7,
 }
 
-impl Ord for Hand<'_> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        match self {
-            Hand::FiveOfAKind(_) => match other {
-                Hand::FiveOfAKind(_) => self.compare_against_same_hand(&other),
-                _ => std::cmp::Ordering::Greater,
-            },
-            Hand::FourOfAKind(_) => match other {
-                Hand::FiveOfAKind(_) => std::cmp::Ordering::Less,
-                Hand::FourOfAKind(_) => self.compare_against_same_hand(&other),
+impl Hand {}
 
-                _ => std::cmp::Ordering::Greater,
-            },
-            Hand::FullHouse(_) => match other {
-                Hand::FiveOfAKind(_) => std::cmp::Ordering::Less,
-                Hand::FourOfAKind(_) => std::cmp::Ordering::Less,
-                Hand::FullHouse(_) => self.compare_against_same_hand(&other),
-                _ => std::cmp::Ordering::Greater,
-            },
-            Hand::ThreeOfAKind(_) => match other {
-                Hand::FiveOfAKind(_) => std::cmp::Ordering::Less,
-                Hand::FourOfAKind(_) => std::cmp::Ordering::Less,
-                Hand::FullHouse(_) => std::cmp::Ordering::Less,
-                Hand::ThreeOfAKind(_) => self.compare_against_same_hand(&other),
-                _ => std::cmp::Ordering::Greater,
-            },
-            Hand::TwoPair(_) => match other {
-                Hand::TwoPair(_) => self.compare_against_same_hand(&other),
-                Hand::OnePair(_) => std::cmp::Ordering::Greater,
-                Hand::HighCard(_) => std::cmp::Ordering::Greater,
-                _ => std::cmp::Ordering::Less,
-            },
-            Hand::OnePair(_) => match other {
-                Hand::OnePair(_) => self.compare_against_same_hand(&other),
-                Hand::HighCard(_) => std::cmp::Ordering::Greater,
-                _ => std::cmp::Ordering::Less,
-            },
-            Hand::HighCard(_) => match other {
-                Hand::HighCard(_) => self.compare_against_same_hand(&other),
-                _ => std::cmp::Ordering::Less,
-            },
-        }
-    }
+struct Round<'a> {
+    hand: Hand,
+    cards: &'a str,
+    bid: u64,
 }
-
-impl PartialOrd for Hand<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Eq for Hand<'_> {}
-
-impl PartialEq for Hand<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.get_string() == other.get_string()
-    }
-}
-
-impl Hand<'_> {
-    fn compare_against_same_hand(&self, other: &Self) -> std::cmp::Ordering {
-        let answer = &self
-            .get_string()
-            .chars()
-            .zip(other.get_string().chars())
-            .find_map(|(card, other_card)| {
-                let card_power = Hand::get_power_of_card(card);
-                let other_card_power = Hand::get_power_of_card(other_card);
-                if card_power != other_card_power {
-                    Some(card_power.cmp(&other_card_power))
-                } else {
-                    None
-                }
-            })
-            .unwrap_or(std::cmp::Ordering::Equal);
-        *answer
-    }
-    fn get_string(&self) -> &str {
-        match self {
-            Hand::HighCard(s) => s,
-            Hand::OnePair(s) => s,
-            Hand::TwoPair(s) => s,
-            Hand::ThreeOfAKind(s) => s,
-            Hand::FullHouse(s) => s,
-            Hand::FourOfAKind(s) => s,
-            Hand::FiveOfAKind(s) => s,
-        }
-    }
-    fn get_power_of_card(c: char) -> usize {
-        CARDS
-            .iter()
-            .position(|(ch, _)| *ch == c)
-            .expect("Invalid position in the const CARDS array")
-    }
-    fn classify(input: &str) -> Hand {
+impl Round<'_> {
+    fn classify_hand(input: &str) -> Hand {
         let mut counts = BTreeMap::new();
         for ch in input.chars() {
             *counts.entry(ch).or_insert(0) += 1;
         }
         let mut counts = counts.into_iter().collect::<Vec<_>>();
         counts.sort_by(|(ch1, _count1), (ch2, _count2)| {
-            let card_power1 = Hand::get_power_of_card(*ch1);
-            let card_power2 = Hand::get_power_of_card(*ch2);
+            let card_power1 = CARDS.iter().find(|(ch, _power)| *ch == *ch1).unwrap().1;
+            let card_power2 = CARDS.iter().find(|(ch, _power)| *ch == *ch2).unwrap().1;
             card_power1.cmp(&card_power2)
         });
         counts.sort_by_key(|(_, count)| *count);
@@ -179,40 +91,34 @@ impl Hand<'_> {
 
         let (_ch, count) = counts.pop().unwrap();
         match count {
-            5 => Hand::FiveOfAKind(input),
-            4 => Hand::FourOfAKind(input),
+            5 => Hand::FiveOfAKind,
+            4 => Hand::FourOfAKind,
             3 => {
                 let (_ch2, count2) = counts.pop().unwrap();
                 match count2 {
-                    2 => Hand::FullHouse(input),
-                    1 => Hand::ThreeOfAKind(input),
+                    2 => Hand::FullHouse,
+                    1 => Hand::ThreeOfAKind,
                     _ => panic!("3 same cards but no full house or three of a kind"),
                 }
             }
             2 => {
                 let (_ch2, count2) = counts.pop().unwrap();
                 match count2 {
-                    2 => Hand::TwoPair(input),
-                    1 => Hand::OnePair(input),
+                    2 => Hand::TwoPair,
+                    1 => Hand::OnePair,
                     _ => panic!("2 same cards but no two pair or one pair"),
                 }
             }
-            1 => Hand::HighCard(input),
+            1 => Hand::HighCard,
             _ => panic!("Invalid hand {}", input),
         }
     }
 }
-#[derive(Debug)]
-struct Round<'a> {
-    hand: Hand<'a>,
-    bid: u64,
-}
-
 impl Eq for Round<'_> {}
 
 impl PartialEq for Round<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self.hand == other.hand
+        self.cards == other.cards
     }
 }
 
@@ -224,7 +130,31 @@ impl PartialOrd for Round<'_> {
 
 impl Ord for Round<'_> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.hand.cmp(&other.hand)
+        if (self.hand as u8) == (other.hand as u8) {
+            return {
+                let answer = &self
+                    .cards
+                    .chars()
+                    .zip(other.cards.chars())
+                    .find_map(|(card, other_card)| {
+                        let card_power = CARDS.iter().find(|(ch, _power)| *ch == card).unwrap().1;
+                        let other_card_power = CARDS
+                            .iter()
+                            .find(|(ch, _power)| *ch == other_card)
+                            .unwrap()
+                            .1;
+                        if card_power != other_card_power {
+                            Some(card_power.cmp(&other_card_power))
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or(std::cmp::Ordering::Equal);
+                *answer
+            };
+        } else {
+            (self.hand as u8).cmp(&(other.hand as u8))
+        }
     }
 }
 
@@ -232,9 +162,16 @@ fn parse_round(input: &str) -> IResult<&str, Round> {
     let (input, (hand, bid)) =
         separated_pair(alphanumeric1, space1, nom::character::complete::u64)(input)?;
 
-    let hand = Hand::classify(hand);
+    let hand_variant = Round::classify_hand(hand);
 
-    Ok((input, Round { hand, bid }))
+    Ok((
+        input,
+        Round {
+            hand: hand_variant,
+            bid,
+            cards: hand,
+        },
+    ))
 }
 fn parse_input(input: &str) -> IResult<&str, Vec<Round>> {
     let (input, rounds) = separated_list1(line_ending, parse_round)(input)?;
@@ -253,6 +190,6 @@ QQQJA 483";
 
     #[test]
     fn test_part_one() {
-        assert_eq!(process(INPUT_TEXT), 5905);
+        assert_eq!(process(INPUT_TEXT), 6440);
     }
 }
