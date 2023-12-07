@@ -1,5 +1,4 @@
-use std::collections::BTreeMap;
-
+use itertools::Itertools;
 use nom::{
     character::complete::{alphanumeric1, line_ending, space1},
     multi::separated_list1,
@@ -40,6 +39,13 @@ const CARDS: [(char, u64); 13] = [
     ('K', 13),
     ('A', 14),
 ];
+
+fn card_power((ch1, _): &(char, usize), (ch2, _): &(char, usize)) -> std::cmp::Ordering {
+    let card_power1 = CARDS.iter().find(|(ch, _)| *ch == *ch1).unwrap().1;
+    let card_power2 = CARDS.iter().find(|(ch, _)| *ch == *ch2).unwrap().1;
+
+    card_power1.cmp(&card_power2)
+}
 #[derive(Clone, Copy)]
 enum Hand {
     HighCard = 1,
@@ -51,8 +57,6 @@ enum Hand {
     FiveOfAKind = 7,
 }
 
-impl Hand {}
-
 struct Round<'a> {
     hand: Hand,
     cards: &'a str,
@@ -60,56 +64,47 @@ struct Round<'a> {
 }
 impl Round<'_> {
     fn classify_hand(input: &str) -> Hand {
-        let mut counts = BTreeMap::new();
-        for ch in input.chars() {
-            *counts.entry(ch).or_insert(0) += 1;
-        }
-        let mut counts = counts.into_iter().collect::<Vec<_>>();
-        counts.sort_by(|(ch1, _count1), (ch2, _count2)| {
-            let card_power1 = CARDS.iter().find(|(ch, _power)| *ch == *ch1).unwrap().1;
-            let card_power2 = CARDS.iter().find(|(ch, _power)| *ch == *ch2).unwrap().1;
-            card_power1.cmp(&card_power2)
-        });
-        counts.sort_by_key(|(_, count)| *count);
+        use crate::Hand::*;
+        let mut cards = input.chars().counts().into_iter().collect::<Vec<_>>();
+        cards.sort_by(card_power);
+        cards.sort_by_key(|(_, count)| *count);
 
-        let jokers = counts
+        let (most_repeated_card, times_repeated) = cards.pop().unwrap();
+
+        let (_, n_jokers) = cards
             .iter()
             .find(|(ch, _count)| ch == &'J')
-            .unwrap_or(&('J', 0))
-            .1;
-        let last = counts.pop().unwrap();
-        let _flag_last = last.1;
+            .unwrap_or(&('J', 0));
 
-        let before_last = counts.pop().unwrap_or(('J', 0));
-
-        if last.0 == 'J' {
-            counts.push((last.0, last.1 + before_last.1))
+        if most_repeated_card == 'J' {
+            let (_second_most_repeated_card, second_times_repeated) =
+                cards.pop().unwrap_or(('_', 0));
+            cards.push((most_repeated_card, times_repeated + second_times_repeated))
         } else {
-            counts.push(before_last);
-            counts.push((last.0, last.1 + jokers));
+            cards.push((most_repeated_card, times_repeated + n_jokers));
         }
 
-        let (_ch, count) = counts.pop().unwrap();
-        match count {
-            5 => Hand::FiveOfAKind,
-            4 => Hand::FourOfAKind,
+        let (_most_repeated_card, times_repeated) = cards.pop().unwrap();
+        match times_repeated {
+            5 => FiveOfAKind,
+            4 => FourOfAKind,
             3 => {
-                let (_ch2, count2) = counts.pop().unwrap();
-                match count2 {
-                    2 => Hand::FullHouse,
-                    1 => Hand::ThreeOfAKind,
+                let (_second_most_repeated, second_times_repeated) = cards.pop().unwrap();
+                match second_times_repeated {
+                    2 => FullHouse,
+                    1 => ThreeOfAKind,
                     _ => panic!("3 same cards but no full house or three of a kind"),
                 }
             }
             2 => {
-                let (_ch2, count2) = counts.pop().unwrap();
-                match count2 {
-                    2 => Hand::TwoPair,
-                    1 => Hand::OnePair,
+                let (_second_most_repeated, second_times_repeated) = cards.pop().unwrap();
+                match second_times_repeated {
+                    2 => TwoPair,
+                    1 => OnePair,
                     _ => panic!("2 same cards but no two pair or one pair"),
                 }
             }
-            1 => Hand::HighCard,
+            1 => HighCard,
             _ => panic!("Invalid hand {}", input),
         }
     }
@@ -132,25 +127,22 @@ impl Ord for Round<'_> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if (self.hand as u8) == (other.hand as u8) {
             return {
-                let answer = &self
+                *&self
                     .cards
                     .chars()
                     .zip(other.cards.chars())
                     .find_map(|(card, other_card)| {
-                        let card_power = CARDS.iter().find(|(ch, _power)| *ch == card).unwrap().1;
-                        let other_card_power = CARDS
-                            .iter()
-                            .find(|(ch, _power)| *ch == other_card)
-                            .unwrap()
-                            .1;
+                        let (_, card_power) =
+                            CARDS.iter().find(|(ch, _power)| *ch == card).unwrap();
+                        let (_, other_card_power) =
+                            CARDS.iter().find(|(ch, _power)| *ch == other_card).unwrap();
                         if card_power != other_card_power {
                             Some(card_power.cmp(&other_card_power))
                         } else {
                             None
                         }
                     })
-                    .unwrap_or(std::cmp::Ordering::Equal);
-                *answer
+                    .unwrap_or(std::cmp::Ordering::Equal)
             };
         } else {
             (self.hand as u8).cmp(&(other.hand as u8))
