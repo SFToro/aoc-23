@@ -1,9 +1,6 @@
 use num_integer::lcm; // Import the lcm function from the num-integer crate
 
-use std::{
-    collections::{BTreeMap, HashMap},
-    vec,
-};
+use std::collections::BTreeMap;
 
 use nom::{
     bytes::complete::tag,
@@ -29,47 +26,34 @@ fn process(input: &str) -> usize {
         .map(|line| (line.current_pos, (line.left, line.right)))
         .collect::<BTreeMap<_, _>>();
 
-    let mut nodes: Vec<_> = map
-        .iter()
+    map.iter()
         .filter(|(pos, (_, _))| pos.ends_with('A'))
-        .map(|(pos, (_, _))| Some(pos))
-        .collect();
+        .map(|(pos, (_, _))| pos)
+        .map(|node| {
+            let mut current_node = node;
 
-    let mut instructions = instructions.chars().cycle();
-    let mut visited: HashMap<usize, Vec<&str>> = nodes
-        .iter()
-        .enumerate()
-        .map(|(idx, _)| (idx, vec![]))
-        .collect();
+            let cycle_length = instructions.chars().cycle().enumerate().find_map(|(i, c)| {
+                let new_node = match c {
+                    'R' => &map.get(current_node).expect("Position not found in map").1,
 
-    while !nodes.iter().all(|node| node.is_none()) {
-        let direction = instructions.next();
+                    'L' => &map.get(current_node).expect("Position not found in map").0,
+                    _ => panic!("Unknown movement"),
+                };
 
-        nodes = nodes
-            .into_iter()
-            .enumerate()
-            .map(|(idx, node)| {
-                if let Some(n) = node {
-                    let new_node = match direction {
-                        Some('R') => &map.get(n).expect("Position not found in map").1,
-
-                        Some('L') => &map.get(n).expect("Position not found in map").0,
-                        _ => panic!("Unknown movement"),
-                    };
-                    visited.entry(idx).and_modify(|v| v.push(new_node));
-
-                    if new_node.ends_with('Z') {
-                        None
-                    } else {
-                        Some(new_node)
-                    }
+                if new_node.ends_with('Z') {
+                    Some(i + 1)
                 } else {
+                    current_node = new_node;
                     None
                 }
-            })
-            .collect();
-    }
-    visited.into_values().map(|v| v.len()).fold(1, lcm)
+            });
+            if let Some(cycle_length) = cycle_length {
+                cycle_length
+            } else {
+                panic!("No cycle found");
+            }
+        })
+        .fold(1, lcm)
 }
 
 #[derive(Debug)]
