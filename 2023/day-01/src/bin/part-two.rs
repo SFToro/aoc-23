@@ -24,7 +24,7 @@ impl PartialEq for Number {
 
 impl PartialOrd for Number {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.pos.partial_cmp(&other.pos)
+        Some(self.cmp(other))
     }
 }
 

@@ -52,9 +52,7 @@ fn process(input: &str) -> usize {
         last.reset();
     }
 
-    grid.retain(|_k, v| {
-        v.parse::<usize>().is_ok() || *v == "*".to_string()
-    });
+    grid.retain(|_k, v| v.parse::<usize>().is_ok() || v.as_str() == "*");
 
     let mut results = vec![];
 

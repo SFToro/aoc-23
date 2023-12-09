@@ -51,7 +51,7 @@ fn process(input: &str) -> usize {
         .map(|result| (result.card_nr, result))
         .collect();
 
-    for (_key, value) in &btree_map {
+    for value in btree_map.values() {
         for id in &value.ids {
             let amount_to_update = btree_map.get(id).unwrap();
 
