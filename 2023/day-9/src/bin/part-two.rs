@@ -6,35 +6,18 @@ fn main() {
     println!("{}", process(input));
 }
 
-fn check_all_zero(data: &Vec<i64>) -> bool {
-    data.iter().filter(|x| **x == 0).count() == data.len()
-}
 fn process(input: &str) -> i64 {
-    let numbers = parse(input);
-
-    numbers
+    parse(input)
         .into_iter()
-        .map(|row| {
-            let mut intermediate = Vec::new();
-            let mut last_row = row.clone();
-            while !check_all_zero(&last_row) {
-                intermediate.push(last_row.clone());
-                let mut previous = last_row[0];
-                last_row = last_row
-                    .into_iter()
-                    .skip(1)
-                    .map(|n| {
-                        let res = n - previous;
-                        previous = n;
-                        res
-                    })
-                    .collect::<Vec<_>>();
+        .map(|mut row| {
+            let mut firsts = vec![row[0]];
+            while !row.iter().all(|x| *x == 0) {
+                row = row.windows(2).map(|r| r[1] - r[0]).collect();
+                firsts.push(row[0]);
             }
-
             let mut acc = 0;
-            intermediate
+            firsts
                 .into_iter()
-                .map(|x| x[0])
                 .rev()
                 .map(|x| {
                     let res = x - acc;
@@ -67,7 +50,7 @@ mod tests {
 10 13 16 21 30 45";
 
     #[test]
-    fn test_part_one() {
+    fn test_part_two() {
         assert_eq!(process(INPUT_TEXT), 2);
     }
 }
