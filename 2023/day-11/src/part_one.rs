@@ -28,7 +28,7 @@ pub fn expand(input: &str) -> Vec<Vec<char>> {
         i += 1;
     }
 
-    let mut transposed_map = transpose(map.clone());
+    let mut transposed_map = transpose(map);
 
     size_x = transposed_map.len();
     size_y = transposed_map[0].len();
@@ -43,6 +43,7 @@ pub fn expand(input: &str) -> Vec<Vec<char>> {
         }
         i += 1;
     }
+    let map = transpose(transposed_map);
     map
 }
 
