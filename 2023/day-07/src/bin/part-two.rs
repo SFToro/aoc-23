@@ -127,8 +127,7 @@ impl Ord for Round<'_> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if (self.hand as u8) == (other.hand as u8) {
             return {
-                self
-                    .cards
+                self.cards
                     .chars()
                     .zip(other.cards.chars())
                     .find_map(|(card, other_card)| {
@@ -182,6 +181,6 @@ QQQJA 483";
 
     #[test]
     fn test_part_one() {
-        assert_eq!(process(INPUT_TEXT), 6440);
+        assert_eq!(process(INPUT_TEXT), 5905);
     }
 }
