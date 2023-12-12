@@ -1,4 +1,5 @@
 use day_11::part_two::*;
+use std::cmp::{max, min};
 
 fn main() {
     let input: &str = include_str!("../../input.txt");
@@ -23,13 +24,11 @@ fn process(input: &str, times: usize) -> usize {
                 .map(|((x, y), _gal)| {
                     let extra_distance = columns
                         .iter()
-                        .filter_map(|c| (*j > *c && y < c || *j < *c && y > c).then_some(times - 1))
+                        .filter_map(|c| (min(y, j) < c && c < max(y, j)).then_some(times - 1))
                         .sum::<usize>()
                         + rows
                             .iter()
-                            .filter_map(|c| {
-                                (*i > *c && x < c || *i < *c && x > c).then_some(times - 1)
-                            })
+                            .filter_map(|c| (min(x, i) < c && c < max(x, i)).then_some(times - 1))
                             .sum::<usize>();
 
                     let x = *x as isize;
@@ -60,6 +59,7 @@ mod tests {
 #...#.....";
 
     #[test]
+
     fn test_part_two() {
         assert_eq!(process(INPUT_TEXT, 10), 1030);
         assert_eq!(process(INPUT_TEXT, 100), 8410);
