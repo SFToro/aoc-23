@@ -11,3 +11,6 @@ create day:
 
 solve day part:
     cargo run -p day-{{day}} --release --bin part-{{part}}
+
+clippy day:
+    cargo clippy -p day-{{day}} --fix --allow-dirty
