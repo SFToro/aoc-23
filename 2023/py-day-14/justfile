@@ -1,0 +1,8 @@
+dev part:
+    npx nodemon --exec "clear && python part-{{part}}.py < ex.in" --ext py
+
+solve part:
+    python part-{{part}}.py < 14.in
+
+test:
+    npx nodemon --exec "clear && python test.py < ex.in" --ext py
