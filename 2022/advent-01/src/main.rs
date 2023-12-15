@@ -1,6 +1,6 @@
 use std::fs;
 fn main() {
-    let contents = fs::read_to_string("input.txt").expect("Cannot load the file");
+    let contents = fs::read_to_string("./input.txt").expect("Cannot load the file");
     let counts = contents.split("\n\n").map(|chunk| -> usize {
         chunk
             .split("\n")
