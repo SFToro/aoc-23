@@ -3,7 +3,7 @@ dev day:
     cargo watch -q -c -w ./day-{{day}}/src -x "test -p day-{{day}} -q"
 
 # Hiding command names with @
-create day:
+create-rust day:
     @cp -r ./starter ./day-{{day}}
     @sed -i "s/day-/day-{{day}}/" ./day-{{day}}/Cargo.toml
     @curl -s https://adventofcode.com/2023/day/{{day}}/input --cookie "session=$AOC_COOKIE" > ./day-{{day}}/input.txt
@@ -14,3 +14,20 @@ solve day part:
 
 clippy day:
     cargo clippy -p day-{{day}} --fix --allow-dirty
+
+create-python day:
+    @mkdir ./py-day-{{day}}
+    @touch ./py-day-{{day}}/part-one.py
+    @curl -s https://adventofcode.com/2023/day/{{day}}/input --cookie "session=$AOC_COOKIE" > ./py-day-{{day}}/input.in
+    @echo "Created day-{{day}}"
+
+
+
+dev-python day part:
+    npx nodemon --exec "clear && python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.ex" --ext py
+
+solve-python day part:
+    python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.in
+
+test day:
+    npx nodemon --exec "clear && python ./py-day-{{day}}/test.py < ./py-day-{{day}}/input.ex" --ext py
