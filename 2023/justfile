@@ -5,7 +5,7 @@ dev day:
 # Hiding command names with @
 create-rust day:
     @cp -r ./starter ./day-{{day}}
-    @sed -i "s/day-/day-{{day}}/" ./day-{{day}}/Cargo.toml
+    sed -i '' 's/day-/day-{{day}}/g' {{justfile_directory()}}/day-{{day}}/Cargo.toml
     @curl -s https://adventofcode.com/2023/day/{{day}}/input --cookie "session=$AOC_COOKIE" > ./day-{{day}}/input.txt
     @echo "Created day-{{day}}"
 
@@ -24,7 +24,7 @@ create-python day:
 
 
 dev-python day part:
-    npx nodemon --exec "clear && python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.ex" --ext py
+    npx nodemon --exec "clear && python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.ex" --ext py,ex
 
 solve-python day part:
     python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.in
