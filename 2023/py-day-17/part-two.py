@@ -31,17 +31,17 @@ class grapho:
     #         self.graph[node] = {}
     #     self.graph[node][neighbour] = distance
     def __str__(self):
-        # self.parents[(0, 0)] = None
-        # self.target = (self.m - 1, self.n - 1)
-        # parent = self.target
-        # parents = [parent]
-        # while parent is not None:
-        #     parent = self.parents[parent]
-        #     parents.append(parent)
+        self.parents[(0, 0)] = None
+        self.target = (self.m - 1, self.n - 1)
+        parent = self.target
+        parents = [parent]
+        while parent is not None:
+            parent = self.parents[parent]
+            parents.append(parent)
         result = ""
         for i in range(self.m):
             row = "".join(
-                f"{self.grid[(i,j)]}" if (i, j) in self.path else "."
+                f"{self.grid[(i,j)]}" if (i, j) in parents else "."
                 for j in range(self.n)
             )
             result += row + f" {i}\n"
@@ -64,57 +64,49 @@ class grapho:
 
     def shortest_distance_within_moves(self, start, end):
         distances = {node: float("inf") for node in self.graph}
-        distances[start] = self.grid[start]
+        distances[start] = 0
         visited = set()
-        heap = [(self.grid[start], 0, start, (0, 0), 1, (start,))]
-
+        heap = [(5, start, (0, 0), 0)]
         while heap:
-            cost, curr_distance, curr_node, (dx, dy), count, path = heappop(heap)
-            curr_distance += cost
-            if curr_node == (1, 4):
+            print("infinite")
+            curr_distance, curr_node, (dx, dy), count = heappop(heap)
+            if curr_node == (0, 3):
                 print(curr_node, count, curr_distance)
             if (curr_node, (dx, dy), count) in visited:
                 continue
-            visited.add((curr_node, (dx, dy), count))
-
             if curr_node == end:
-                self.path = path
-                print(self.path)
-
-                print(self)
-
-                print("total distance", curr_distance)
+                return curr_distance
 
             for neighbour in self.graph[curr_node]:
-                if neighbour in path:
-                    continue
                 cost = self.graph[curr_node][neighbour]
-                new_dx = neighbour[0] - path[-1][0]
-                new_dy = neighbour[1] - path[-1][1]
+                # print(cost)
+                if curr_node == (0, 3):
+                    print(curr_node, count, curr_distance, neighbour, cost)
+                # cost = -cost
+                new_dx = neighbour[0] - curr_node[0]
+                new_dy = neighbour[1] - curr_node[1]
+                if (new_dx, new_dy) == (dx, dy):
+                    count += 1
+                else:
+                    count = 1
 
-                if len(path) >= 4:
-                    dir_4 = (path[-3][0] - path[-4][0], path[-3][1] - path[-4][1])
+                # Check movement constraints
+                if neighbour[0] + neighbour[1] <= 4:
+                    if count < 10:
+                        new_distance = curr_distance + cost
 
-                    dir_3 = (path[-2][0] - path[-3][0], path[-2][1] - path[-3][1])
-                    dir_2 = (path[-1][0] - path[-2][0], path[-1][1] - path[-2][1])
-                    dir_1 = (neighbour[0] - path[-1][0], neighbour[1] - path[-1][1])
+                        heappush(
+                            heap, (new_distance, neighbour, (new_dx, new_dy), count)
+                        )
+                else:
+                    if count < 4 and count < 10:
+                        new_distance = curr_distance + cost
 
-                    if dir_3 == dir_2 and dir_2 == dir_1 and dir_1 == dir_4:
-                        continue
+                        heappush(
+                            heap, (new_distance, neighbour, (new_dx, new_dy), count)
+                        )
 
-                new_path = (*path, neighbour)
-
-                heappush(
-                    heap,
-                    (
-                        cost,
-                        curr_distance,
-                        neighbour,
-                        (new_dx, new_dy),
-                        count,
-                        new_path,
-                    ),
-                )
+            visited.add((curr_node, (dx, dy), count))
 
         return -1
 
