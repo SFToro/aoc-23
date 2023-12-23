@@ -24,7 +24,7 @@ create-python day:
 
 
 dev-python day part:
-    npx nodemon --exec "clear && python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.ex" --ext py,ex
+    npx nodemon --exec "clear && python py-day-{{day}}/part-{{part}}.py < py-day-{{day}}/input.ex" --ext py,ex
 
 solve-python day part:
     python ./py-day-{{day}}/part-{{part}}.py < ./py-day-{{day}}/input.in
