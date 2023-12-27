@@ -18,6 +18,8 @@ clippy day:
 create-python day:
     @mkdir ./py-day-{{day}}
     @touch ./py-day-{{day}}/part-one.py
+    @touch ./py-day-{{day}}/part-two.py
+    @touch ./py-day-{{day}}/input.ex
     @curl -s https://adventofcode.com/2023/day/{{day}}/input --cookie "session=$AOC_COOKIE" > ./py-day-{{day}}/input.in
     @echo "Created day-{{day}}"
 
