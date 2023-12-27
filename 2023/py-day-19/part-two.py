@@ -1,14 +1,24 @@
-import sys
-import math
 from typing import Optional
+import numpy as np
+from collections import defaultdict
+
 
 L = open(0).read().splitlines()
 
 rules = {}
 
+
+def negated_norm(s: str):
+    negated_rule = ""
+    if "<" in s:
+        negated_rule = s.replace("<", ">=")
+    else:
+        negated_rule = s.replace(">", "<=")
+    return negated_rule
+
+
 for i, line in enumerate(L):
     if line == "":
-        parts = L[i + 1 :]
         break
     rule_name, rest = line.split("{")
     rule_set = rest.strip("}")
@@ -19,72 +29,70 @@ for i, line in enumerate(L):
         else:
             rules[rule_name][-1] += "|" + rule.strip()
 
-accepting_rules = []
-for name, ruleset in rules.items():
-    for rule in ruleset:
-        if ("A") in rule:
-            accepting_rules.append(name)
-
-rule_tree = {}
-for acept_rule in accepting_rules:
-    parent_rule = None
-    rule_tree[acept_rule] = []
-    while parent_rule != "in":
-        for name, ruleset in rules.items():
-            for rule in ruleset:
-                if parent_rule is not None and parent_rule in rule:
-                    rule_tree[acept_rule].append(name)
-                    parent_rule = name
-                elif parent_rule is None and acept_rule in rule:
-                    rule_tree[acept_rule].append(name)
-                    parent_rule = name
-
-
-def negated(n: Optional[int]) -> Optional[int]:
-    if n is None:
-        return None
-    return 4000 - n
-
-
-# print(combinations_px)
-def negated_norm(s: str):
-    negated_rule = ""
-    if "<" in s:
-        negated_rule = s.replace("<", ">")
-    else:
-        negated_rule = s.replace(">", "<")
-    return negated_rule
-
-
-for rule_name, ruleset in rules.items():
-    previous = None
-    mapping = {}
+    mapping = defaultdict(list)
     previous = ""
-    for rule in ruleset:
+    for rule in rules[rule_name]:
         norm, dest = rule.split(":")
         if "|" in dest:
             a, b = dest.split("|")
-            mapping[a] = previous + norm
-            mapping[b] = previous + negated_norm(norm)
+            mapping[a].append(previous + norm)
+            mapping[b].append(previous + negated_norm(norm))
         else:
-            mapping[dest] = previous + norm
+            mapping[dest].append(previous + norm)
 
         previous += negated_norm(norm) + ","
     rules[rule_name] = mapping
 
+path = tuple(("in",))
+queue = [("in", path, "")]
+paths = []
+while queue:
+    rule, path, ruleset = queue.pop()
+    if rule == "A":
+        paths.append((tuple(path), ruleset))
+        continue
+    if rule == "R":
+        continue
+    for dest, norms in rules[rule].items():
+        for norm in norms:
+            new_norm = ruleset + "," + norm
+            if dest not in path:
+                new_path = tuple(path)
+                new_path += (dest,)
+                queue.append((dest, new_path, new_norm))
 
-print(rules)
-# if "<" in norm:
-#     item, number = norm.split("<")
-#     number = int(number)
-#     items[item] = number
-# if ">" in norm:
-#     item, number = norm.split(">")
-#     number = int(number)
-#     items[item] = negated(number)
 
-# chance = previous
-# previous = negated(number)
+combinations = []
+for path, ruleset in paths:
+    items = {"x": [1, 4000], "m": [1, 4000], "a": [1, 4000], "s": [1, 4000]}
+    for rule in ruleset.split(","):
+        if rule == "":
+            continue
+        item_type = rule[0]
 
-# if "|" in dest:
-#     a, b = dest.split("|")
+        if "<" in rule:
+            if "=" in rule:
+                _, num = rule.split("<=")
+                if items[item_type][1] > int(num):
+                    items[item_type][1] = int(num)
+            else:
+                _, num = rule.split("<")
+                if items[item_type][1] > int(num):
+                    items[item_type][1] = int(num) - 1
+        elif ">" in rule:
+            if "=" in rule:
+                _, num = rule.split(">=")
+                if items[item_type][0] < int(num):
+                    items[item_type][0] = int(num)
+            else:
+                _, num = rule.split(">")
+                if items[item_type][0] < int(num):
+                    items[item_type][0] = int(num) + 1
+    combinations.append(items)
+
+total = 0
+
+for combination in combinations:
+    total += np.prod([combination[x][1] - combination[x][0] + 1 for x in combination])
+
+print(total)
